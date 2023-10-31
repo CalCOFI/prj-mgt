@@ -1,0 +1,49 @@
+---
+title: "github_issues"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+librarian::shelf(
+  ecoquants/ghmgt)
+# devtools::load_all("~/Github/ecoquants/ghmgt")
+
+org <- "CalCOFI"
+token <- Sys.getenv("GITHUB_TOKEN")
+
+gq <- get_gq(token)
+
+repos_all <- get_owner_repos(org)
+
+repos <- c("api","apps","CalCOFI.github.io","calcofi4r","docs","larvae-cinms","prj-mgt","server","workflows")
+setdiff(repos_all, repos) |> paste(collapse = '","') |> cat()
+# c("CalCOFI_3yr_Review","CalCOFI_eDNA","CalCOFI_map","capstone","Capstone-CalCOFI-2023","habs_phytoplankton","hypoxia-story","OceanView","pollutants-app","rCRUX","viz-gallery")
+
+prj <- get_project_id(gq, org, 4)
+
+project_issues <- get_project_issues(gq, prj)
+
+# iterate over repos and add all issues to Project
+for (repo in repos){  # repo = repos[1]
+  issues <- get_repo_issues(org, repo)
+  message(glue("repo: {repo} with {length(issues)} issues:"))
+  issues_toadd <- setdiff(issues, project_issues)
+  if (length(issues_toadd) == 0){
+    message("  0")
+    next
+  }
+  message(glue("  {length(issues_toadd)}"))
+  for (issue in issues_toadd){  # issue = issues[1]
+    add_project_issue(gq, prj, issue)
+  }
+}
+```
+
+## Done
+
+- Removed empty repositories: 
+  - CalCOFI-CINMS-data-viz (@mspector13)
+  - seabirds_marinemammal (@jacobsnm)
+      REU summer project with Nicholas Jacobs, Dr. Brice Semmens and Dr. Erin Satterthwaite focusing on Brandt's Cormorant
